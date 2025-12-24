@@ -1,0 +1,78 @@
+import cv2
+import numpy as np
+import matplotlib.pyplot as plt
+import os
+
+
+def analyze_frequency_spectrum(image_path):
+    """
+    Project Aletheia: Performs Discrete Fourier Transform (DFT) to
+    reveal invisible frequency artifacts in AI-generated images.
+    """
+    print(f"[*] Analyzing Forensic Layer: {image_path}...")
+
+    # 1. Load image in Grayscale (Color doesn't matter for frequency)
+    img = cv2.imread(image_path, 0)
+    if img is None:
+        print(f"[!] Error: Could not find {image_path}")
+        return
+
+    # 2. Perform Fast Fourier Transform (FFT)
+    # This converts spatial pixels (x,y) into frequency waves (u,v)
+    f = np.fft.fft2(img)
+    fshift = np.fft.fftshift(f)  # Shift zero freq to center
+
+    # 3. Calculate Magnitude Spectrum (The "Visual" part)
+    # We use Log scale because frequencies range from 0 to 1,000,000+
+    magnitude_spectrum = 20 * np.log(np.abs(fshift))
+
+    return img, magnitude_spectrum
+
+
+def generate_forensic_report(real_img_path, fake_img_path):
+    """
+    Generates a side-by-side comparison of Real vs. AI spectral patterns.
+    """
+    print("[!] Initializing Project Aletheia - Spectral Analysis Engine...")
+
+    # Analyze both images
+    img_real, spec_real = analyze_frequency_spectrum(real_img_path)
+    img_fake, spec_fake = analyze_frequency_spectrum(fake_img_path)
+
+    # Setup the plot (The "Medical Chart" look)
+    fig, axs = plt.subplots(2, 2, figsize=(12, 10))
+    plt.style.use('dark_background')  # Cyberpunk aesthetic for the report
+
+    # --- ROW 1: The Visuals ---
+    axs[0, 0].imshow(img_real, cmap='gray')
+    axs[0, 0].set_title("Input A: Organic Source (Real)", color='#00ff00')
+    axs[0, 0].axis('off')
+
+    axs[0, 1].imshow(img_fake, cmap='gray')
+    axs[0, 1].set_title("Input B: Synthetic Source (AI)", color='#ff0055')
+    axs[0, 1].axis('off')
+
+    # --- ROW 2: The Truth (Frequency Spectrum) ---
+    # Real Image Spectrum
+    axs[1, 0].imshow(spec_real, cmap='inferno')
+    axs[1, 0].set_title("Spectral Analysis: Natural Noise Distribution", fontsize=10)
+    axs[1, 0].axis('off')
+
+    # AI Image Spectrum
+    axs[1, 1].imshow(spec_fake, cmap='inferno')
+    axs[1, 1].set_title("Spectral Analysis: Artificial Grid Artifacts detected", fontsize=10)
+    axs[1, 1].axis('off')
+
+    # Finalize and Save
+    plt.tight_layout()
+    output_filename = "Aletheia_Forensic_Report.png"
+    plt.savefig(output_filename, dpi=300)
+    print(f"\n[SUCCESS] Forensic Report Generated: {output_filename}")
+    plt.show()
+
+
+if __name__ == "__main__":
+    # YOU NEED TWO IMAGES TO RUN THIS:
+    # 1. 'real.jpg' (A real photo from your camera)
+    # 2. 'fake.jpg' (An AI-generated version of a person/place)
+    generate_forensic_report('real.jpg', 'fake.jpg')
